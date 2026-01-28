@@ -15,7 +15,7 @@ async function boostrap() {
   } catch (err) {
     logger.error("Failed's to start the server", `${(err as Error).message}`);
     process.exit(1);
-  }
+  } 
 }
 
 boostrap();
