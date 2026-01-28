@@ -1,11 +1,8 @@
-import { query } from "../../../db/db.js";
-import { getIo } from "../../../realtime/io.js";
-import { mapNotificationsRow, NotificationRow } from "./notifications.types.js";
+import { query } from '../../../db/db.js';
+import { getIo } from '../../../realtime/io.js';
+import { mapNotificationsRow, NotificationRow } from './notifications.types.js';
 
-export async function createReplyNotification(params: {
-  threadId: number;
-  actorUserId: number;
-}) {
+export async function createReplyNotification(params: { threadId: number; actorUserId: number }) {
   const { threadId, actorUserId } = params;
 
   const threadRes = await query(
@@ -73,17 +70,11 @@ export async function createReplyNotification(params: {
 
   const io = getIo();
   if (io) {
-    io.to(`notifications:user:${authorUserId}`).emit(
-      "notification:new",
-      payload
-    );
+    io.to(`notifications:user:${authorUserId}`).emit('notification:new', payload);
   }
 }
 
-export async function createLikeNotification(params: {
-  threadId: number;
-  actorUserId: number;
-}) {
+export async function createLikeNotification(params: { threadId: number; actorUserId: number }) {
   const { threadId, actorUserId } = params;
 
   const threadRes = await query(
@@ -151,30 +142,24 @@ export async function createLikeNotification(params: {
 
   const io = getIo();
   if (io) {
-    io.to(`notifications:user:${authorUserId}`).emit(
-      "notification:new",
-      payload
-    );
+    io.to(`notifications:user:${authorUserId}`).emit('notification:new', payload);
   }
 }
 
-export async function listNotificationsForUser(params: {
-  userId: number;
-  unreadOnly: boolean;
-}) {
+export async function listNotificationsForUser(params: { userId: number; unreadOnly: boolean }) {
   try {
     const { unreadOnly, userId } = params;
 
-    const conditions = ["n.user_id = $1"];
+    const conditions = ['n.user_id = $1'];
     const values: unknown[] = [userId];
 
     if (unreadOnly) {
-      conditions.push("n.read_at IS NULL");
+      conditions.push('n.read_at IS NULL');
     }
 
-    const whereClause = `WHERE ${conditions.join(" AND ")}`;
+    const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
-    console.log(whereClause, userId, unreadOnly, "whereClause");
+    console.log(whereClause, userId, unreadOnly, 'whereClause');
 
     const result = await query(
       `
@@ -196,19 +181,14 @@ export async function listNotificationsForUser(params: {
       values
     );
 
-    return result.rows.map((noti) =>
-      mapNotificationsRow(noti as NotificationRow)
-    );
+    return result.rows.map(noti => mapNotificationsRow(noti as NotificationRow));
   } catch (err) {
-    console.error("Error:", err);
+    console.error('Error:', err);
     throw err;
   }
 }
 
-export async function markNotificationRead(params: {
-  userId: number;
-  notificationId: number;
-}) {
+export async function markNotificationRead(params: { userId: number; notificationId: number }) {
   const { userId, notificationId } = params;
 
   await query(

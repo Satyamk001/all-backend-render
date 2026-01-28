@@ -1,5 +1,5 @@
-import { query } from "../../../db/db.js";
-import { User, UserRow } from "./user.types.js";
+import { query } from '../../../db/db.js';
+import { User, UserRow } from './user.types.js';
 
 function hydrateUser(row: UserRow): User {
   return {
@@ -10,7 +10,7 @@ function hydrateUser(row: UserRow): User {
     bio: row.bio,
     avatarUrl: row.avatar_url,
     createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    updatedAt: row.updated_at
   };
 }
 
@@ -87,7 +87,7 @@ export async function repoUpdateUserProfile(params: {
   const result = await query<UserRow>(
     `
       UPDATE users
-      SET ${setClauses.join(", ")}
+      SET ${setClauses.join(', ')}
       WHERE clerk_user_id = $1
       RETURNING
         id,

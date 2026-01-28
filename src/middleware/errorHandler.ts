@@ -1,11 +1,11 @@
-import type { ErrorRequestHandler } from "express";
-import { HttpError } from "../lib/errors.js";
-import { ZodError } from "zod";
-import { logger } from "../lib/logger.js";
+import type { ErrorRequestHandler } from 'express';
+import { HttpError } from '../lib/errors.js';
+import { ZodError } from 'zod';
+import { logger } from '../lib/logger.js';
 
 export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   let status = 500;
-  let message = "Internal server error";
+  let message = 'Internal server error';
   let details: unknown = undefined;
 
   if (err instanceof HttpError) {
@@ -14,10 +14,10 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     details = err.details;
   } else if (err instanceof ZodError) {
     status = 400;
-    message = "Invalid request data";
-    details = err.issues.map((issue) => ({
+    message = 'Invalid request data';
+    details = err.issues.map(issue => ({
       path: issue.path,
-      message: issue.message,
+      message: issue.message
     }));
   }
 
@@ -27,7 +27,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
     error: {
       message,
       status,
-      details,
-    },
+      details
+    }
   });
 };

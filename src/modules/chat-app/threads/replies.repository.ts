@@ -1,10 +1,10 @@
-import { query } from "../../../db/db.js";
-import { BadRequestError, NotFoundError } from "../../../lib/errors.js";
-import { getThreadById } from "./threads.repository.js";
+import { query } from '../../../db/db.js';
+import { BadRequestError, NotFoundError } from '../../../lib/errors.js';
+import { getThreadById } from './threads.repository.js';
 
 export async function listRepliesForThread(threadId: number) {
   if (!Number.isInteger(threadId) || threadId <= 0) {
-    throw new BadRequestError("Invalid thread Id");
+    throw new BadRequestError('Invalid thread Id');
   }
 
   const result = await query(
@@ -23,22 +23,18 @@ export async function listRepliesForThread(threadId: number) {
     [threadId]
   );
 
-  return result.rows.map((row) => ({
+  return result.rows.map(row => ({
     id: row.id as number,
     body: row.body as string,
     createdAt: row.created_at as Date,
     author: {
       displayName: (row.author_display_name as string) ?? null,
-      handle: (row.author_handle as string) ?? null,
-    },
+      handle: (row.author_handle as string) ?? null
+    }
   }));
 }
 
-export async function createReply(params: {
-  threadId: number;
-  authorUserId: number;
-  body: string;
-}) {
+export async function createReply(params: { threadId: number; authorUserId: number; body: string }) {
   const { body, threadId, authorUserId } = params;
 
   const result = await query(
@@ -76,8 +72,8 @@ export async function createReply(params: {
     createdAt: replyRow.created_at as Date,
     author: {
       displayName: (replyRow.author_display_name as string) ?? null,
-      handle: (replyRow.author_handle as string) ?? null,
-    },
+      handle: (replyRow.author_handle as string) ?? null
+    }
   };
 }
 
@@ -95,7 +91,7 @@ export async function findReplyAuthor(replyId: number) {
   const row = result.rows[0];
 
   if (!row) {
-    throw new NotFoundError("Reply not found!!!");
+    throw new NotFoundError('Reply not found!!!');
   }
 
   return row.author_user_id as number;
@@ -111,10 +107,7 @@ export async function deleteReplyById(replyId: number) {
   );
 }
 
-export async function likeThreadOnce(params: {
-  threadId: number;
-  userId: number;
-}) {
+export async function likeThreadOnce(params: { threadId: number; userId: number }) {
   const { threadId, userId } = params;
 
   await query(
@@ -127,10 +120,7 @@ export async function likeThreadOnce(params: {
   );
 }
 
-export async function removeThreadOnce(params: {
-  threadId: number;
-  userId: number;
-}) {
+export async function removeThreadOnce(params: { threadId: number; userId: number }) {
   const { threadId, userId } = params;
 
   await query(
@@ -142,15 +132,12 @@ export async function removeThreadOnce(params: {
   );
 }
 
-export async function getThreadDetailsWithCounts(params: {
-  threadId: number;
-  viewerUserId: number | null;
-}) {
+export async function getThreadDetailsWithCounts(params: { threadId: number; viewerUserId: number | null }) {
   const { threadId, viewerUserId } = params;
 
   const thread = await getThreadById(threadId);
 
-  console.log(thread, "threadcheck");
+  console.log(thread, 'threadcheck');
 
   const likeResult = await query(
     `
@@ -196,6 +183,6 @@ export async function getThreadDetailsWithCounts(params: {
     ...thread,
     likeCount,
     replyCount,
-    viewerHasLikedThisPostOrNot,
+    viewerHasLikedThisPostOrNot
   };
 }

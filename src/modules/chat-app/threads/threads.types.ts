@@ -17,7 +17,7 @@ export function mapCategoryRow(row: CategoryRow): Category {
     id: row.id,
     slug: row.slug,
     name: row.name,
-    description: row.description,
+    description: row.description
   };
 }
 
@@ -58,12 +58,12 @@ export function mapThreadDetailRow(row: ThreadDetailRow): ThreadDetail {
     updatedAt: row.updated_at,
     category: {
       slug: row.category_slug,
-      name: row.category_name,
+      name: row.category_name
     },
     author: {
       displayName: row.author_display_name,
-      handle: row.author_handle,
-    },
+      handle: row.author_handle
+    }
   };
 }
 
@@ -72,7 +72,7 @@ export type ThreadListFilter = {
   pageSize: number;
   categorySlug?: string;
   search?: string;
-  sort: "new" | "old";
+  sort: 'new' | 'old';
 };
 
 export type ThreadSummary = {
@@ -109,11 +109,11 @@ export function mapThreadSummaryRow(row: ThreadSummaryRow): ThreadSummary {
     createdAt: row.created_at,
     category: {
       slug: row.category_slug,
-      name: row.category_name,
+      name: row.category_name
     },
     author: {
       displayName: row.author_display_name,
-      handle: row.author_handle,
-    },
+      handle: row.author_handle
+    }
   };
 }

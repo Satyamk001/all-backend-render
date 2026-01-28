@@ -33,10 +33,10 @@ export function mapNotificationsRow(row: NotificationRow): Notification {
     readAt: row.read_at ? row.read_at.toISOString() : null,
     actor: {
       displayName: row.actor_display_name ?? null,
-      handle: row.actor_handle ?? null,
+      handle: row.actor_handle ?? null
     },
     thread: {
-      title: row.thread_title ?? "",
-    },
+      title: row.thread_title ?? ''
+    }
   };
 }

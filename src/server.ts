@@ -1,8 +1,7 @@
-import server from "./app.js";
-import { env } from "./config/env.js";
-import { assertDatabaseConnection } from "./db/db.js";
-import { logger } from "./lib/logger.js";
-
+import server from './app.js';
+import { env } from './config/env.js';
+import { assertDatabaseConnection } from './db/db.js';
+import { logger } from './lib/logger.js';
 
 async function boostrap() {
   try {
@@ -14,7 +13,7 @@ async function boostrap() {
       logger.info(`Server is now listening to port: ${port}`);
     });
   } catch (err) {
-    logger.error("Failed to start the server", `${(err as Error).message}`);
+    logger.error("Failed's to start the server", `${(err as Error).message}`);
     process.exit(1);
   }
 }

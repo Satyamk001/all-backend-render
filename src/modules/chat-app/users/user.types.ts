@@ -38,9 +38,7 @@ export type UserProfileResponse = {
   bio: string | null;
 };
 
-export function toUserProfileResponse(
-  profile: UserProfile
-): UserProfileResponse {
+export function toUserProfileResponse(profile: UserProfile): UserProfileResponse {
   const { user, clerkEmail, clerkFullName } = profile;
 
   return {
@@ -50,6 +48,6 @@ export function toUserProfileResponse(
     displayName: user.displayName ?? clerkFullName ?? null,
     handle: user.handle ?? null,
     avatarUrl: user.avatarUrl ?? null,
-    bio: user.bio ?? null,
+    bio: user.bio ?? null
   };
 }

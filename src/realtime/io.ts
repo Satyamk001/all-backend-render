@@ -1,8 +1,8 @@
-import { Server } from "socket.io";
-import { Server as HttpServer } from "http";
-import { getUserFromClerk } from "../modules/chat-app/users/user.service.js";
-import { createDirectMessage } from "../modules/chat-app/chat/chat.service.js";
-import { env } from "../config/env.js";
+import { Server } from 'socket.io';
+import { Server as HttpServer } from 'http';
+import { getUserFromClerk } from '../modules/chat-app/users/user.service.js';
+import { createDirectMessage } from '../modules/chat-app/chat/chat.service.js';
+import { env } from '../config/env.js';
 
 let io: Server | null = null;
 
@@ -41,8 +41,8 @@ function getOnlineUserIds(): number[] {
 }
 
 function broadcasePresence() {
-  io?.emit("presence:update", {
-    onlineUserIds: getOnlineUserIds(),
+  io?.emit('presence:update', {
+    onlineUserIds: getOnlineUserIds()
   });
 }
 
@@ -51,18 +51,18 @@ export function initIo(httpServer: HttpServer) {
 
   io = new Server(httpServer, {
     cors: {
-      origin: [env.FRONTEND_URL, "http://localhost:5173"],
-      credentials: true,
-    },
+      origin: [env.FRONTEND_URL, 'http://localhost:5173'],
+      credentials: true
+    }
   });
 
-  io.on("connection", async (socket) => {
+  io.on('connection', async socket => {
     console.log(`[io connection]------> ${socket.id}`);
 
     try {
       const clerkUserId = socket.handshake.auth?.userId;
 
-      if (!clerkUserId || typeof clerkUserId !== "string") {
+      if (!clerkUserId || typeof clerkUserId !== 'string') {
         console.log(`[Missing clerk user id]------> ${socket.id}`);
         socket.disconnect(true);
         return;
@@ -87,7 +87,7 @@ export function initIo(httpServer: HttpServer) {
       }) = {
         userId: localUserId,
         displayName,
-        handle,
+        handle
       };
 
       //  Join noti room
@@ -99,7 +99,7 @@ export function initIo(httpServer: HttpServer) {
       const dmRoom = `dm:user:${localUserId}`;
       socket.join(dmRoom);
 
-      socket.on("dm:send", async (payload: unknown) => {
+      socket.on('dm:send', async (payload: unknown) => {
         try {
           const data = payload as {
             recipientUserId?: number;
@@ -125,20 +125,20 @@ export function initIo(httpServer: HttpServer) {
           const message = await createDirectMessage({
             senderUserId,
             recipientUserId,
-            body: data?.body ?? "",
-            imageUrl: data?.imageUrl ?? null,
+            body: data?.body ?? '',
+            imageUrl: data?.imageUrl ?? null
           });
 
           const senderRoom = `dm:user:${senderUserId}`;
           const recipientRoom = `dm:user:${recipientUserId}`;
 
-          io?.to(senderRoom).to(recipientRoom).emit("dm:message", message);
+          io?.to(senderRoom).to(recipientRoom).emit('dm:message', message);
         } catch (err) {
           console.error(err);
         }
       });
 
-      socket.on("dm:typing", (payload: unknown) => {
+      socket.on('dm:typing', (payload: unknown) => {
         const data = payload as {
           recipientUserId?: number;
           isTyping?: boolean;
@@ -154,17 +154,17 @@ export function initIo(httpServer: HttpServer) {
 
         const recipientRoom = `dm:user:${recipientUserId}`;
 
-        io?.to(recipientRoom).emit("dm:typing", {
+        io?.to(recipientRoom).emit('dm:typing', {
           senderUserId,
           recipientRoom,
-          isTyping: !!data?.isTyping,
+          isTyping: !!data?.isTyping
         });
       });
 
       addOnlineUser(localUserId, socket.id);
       broadcasePresence();
 
-      socket.on("disconnect", () => {
+      socket.on('disconnect', () => {
         console.log(`[io disconnect]------> ${socket.id}`);
         removeOnlineUser(localUserId, socket.id);
         broadcasePresence();
@@ -179,7 +179,6 @@ export function initIo(httpServer: HttpServer) {
 export function getIo() {
   return io;
 }
-
 
 // | What you want | Use |
 // | -------------------- | ------------------------- |

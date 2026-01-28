@@ -1,5 +1,5 @@
-import { query } from "../../../db/db.js";
-import { BadRequestError, NotFoundError } from "../../../lib/errors.js";
+import { query } from '../../../db/db.js';
+import { BadRequestError, NotFoundError } from '../../../lib/errors.js';
 import {
   Category,
   CategoryRow,
@@ -10,8 +10,8 @@ import {
   ThreadDetailRow,
   ThreadListFilter,
   ThreadSummary,
-  ThreadSummaryRow,
-} from "./threads.types.js";
+  ThreadSummaryRow
+} from './threads.types.js';
 
 export function parseThreadListFilter(queryObj: {
   page?: unknown;
@@ -25,23 +25,18 @@ export function parseThreadListFilter(queryObj: {
   const pageSize = Math.min(Math.max(rawPageSize, 1), 50);
 
   const categorySlug =
-    typeof queryObj.category === "string" && queryObj.category.trim()
-      ? queryObj.category.trim()
-      : undefined;
+    typeof queryObj.category === 'string' && queryObj.category.trim() ? queryObj.category.trim() : undefined;
 
-  const search =
-    typeof queryObj.q === "string" && queryObj.q.trim()
-      ? queryObj.q.trim()
-      : undefined;
+  const search = typeof queryObj.q === 'string' && queryObj.q.trim() ? queryObj.q.trim() : undefined;
 
-  const sort: "new" | "old" = queryObj.sort === "old" ? "old" : "new";
+  const sort: 'new' | 'old' = queryObj.sort === 'old' ? 'old' : 'new';
 
   return {
     page,
     pageSize,
     search,
     sort,
-    categorySlug,
+    categorySlug
   };
 }
 
@@ -76,7 +71,7 @@ export async function createdThread(params: {
   );
 
   if (categoryRes.rows.length === 0) {
-    throw new BadRequestError("Invalid category");
+    throw new BadRequestError('Invalid category');
   }
 
   const categoryId = categoryRes.rows[0].id;
@@ -120,15 +115,13 @@ export async function getThreadById(id: number): Promise<ThreadDetail> {
   const row = result.rows[0];
 
   if (!row) {
-    throw new NotFoundError("Thread not found");
+    throw new NotFoundError('Thread not found');
   }
 
   return mapThreadDetailRow(row);
 }
 
-export async function listThreads(
-  filter: ThreadListFilter
-): Promise<ThreadSummary[]> {
+export async function listThreads(filter: ThreadListFilter): Promise<ThreadSummary[]> {
   const { page, pageSize, categorySlug, sort, search } = filter;
 
   const conditions: string[] = [];
@@ -150,12 +143,9 @@ export async function listThreads(
     idx++;
   }
 
-  const whereClause = conditions.length
-    ? `WHERE ${conditions.join(" AND ")}`
-    : "";
+  const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
-  const orderClause =
-    sort === "old" ? "ORDER BY t.created_at ASC" : "ORDER BY t.created_at DESC";
+  const orderClause = sort === 'old' ? 'ORDER BY t.created_at ASC' : 'ORDER BY t.created_at DESC';
 
   const offset = (page - 1) * pageSize;
 

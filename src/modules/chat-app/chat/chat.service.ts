@@ -1,4 +1,4 @@
-import { query } from "../../../db/db.js";
+import { query } from '../../../db/db.js';
 
 export async function listChatUsers(currentUserId: number) {
   try {
@@ -16,22 +16,18 @@ export async function listChatUsers(currentUserId: number) {
       [currentUserId]
     );
 
-    return result.rows.map((row) => ({
+    return result.rows.map(row => ({
       id: row.id as number,
       displayName: (row.display_name as string) ?? null,
       handle: (row.handle as string) ?? null,
-      avatarUrl: (row.avatar_url as string) ?? null,
+      avatarUrl: (row.avatar_url as string) ?? null
     }));
   } catch (err) {
     throw err;
   }
 }
 
-export async function listDirectMessages(params: {
-  userId: number;
-  otherUserId: number;
-  limit: number;
-}) {
+export async function listDirectMessages(params: { userId: number; otherUserId: number; limit: number }) {
   try {
     const { userId, otherUserId, limit } = params;
     const setLimit = Math.min(Math.max(limit || 50, 1), 200);
@@ -67,7 +63,7 @@ export async function listDirectMessages(params: {
 
     const rows = result.rows.slice().reverse();
 
-    return rows.map((row) => ({
+    return rows.map(row => ({
       id: row.id as number,
       senderUserId: row.sender_user_id as number,
       recipientUserId: row.recipient_user_id as number,
@@ -77,13 +73,13 @@ export async function listDirectMessages(params: {
       sender: {
         displayName: (row.sender_display_name as string) ?? null,
         handle: (row.sender_handle as string) ?? null,
-        avatarUrl: (row.sender_avatar as string) ?? null,
+        avatarUrl: (row.sender_avatar as string) ?? null
       },
       recipient: {
         displayName: (row.recipient_display_name as string) ?? null,
         handle: (row.recipient_handle as string) ?? null,
-        avatarUrl: (row.recipient_avatar as string) ?? null,
-      },
+        avatarUrl: (row.recipient_avatar as string) ?? null
+      }
     }));
   } catch (err) {
     throw err;
@@ -97,12 +93,12 @@ export async function createDirectMessage(params: {
   imageUrl?: string | null;
 }) {
   const { senderUserId, recipientUserId } = params;
-  const rawBody = params?.body ?? "";
+  const rawBody = params?.body ?? '';
   const trimmedBody = rawBody.trim();
   const setImageUrl = params?.imageUrl ?? null;
 
   if (!trimmedBody && !setImageUrl) {
-    throw new Error("Message body or image is required");
+    throw new Error('Message body or image is required');
   }
 
   const insertRes = await query(
@@ -143,7 +139,7 @@ export async function createDirectMessage(params: {
   const fullRow = fullRes.rows[0];
 
   if (!fullRow) {
-    throw new Error("Failed to load inserted direct message (DM)");
+    throw new Error('Failed to load inserted direct message (DM)');
   }
 
   return {
@@ -156,12 +152,12 @@ export async function createDirectMessage(params: {
     sender: {
       displayName: (fullRow.sender_display_name as string) ?? null,
       handle: (fullRow.sender_handle as string) ?? null,
-      avatarUrl: (fullRow.sender_avatar as string) ?? null,
+      avatarUrl: (fullRow.sender_avatar as string) ?? null
     },
     recipient: {
       displayName: (fullRow.recipient_display_name as string) ?? null,
       handle: (fullRow.recipient_handle as string) ?? null,
-      avatarUrl: (fullRow.recipient_avatar as string) ?? null,
-    },
+      avatarUrl: (fullRow.recipient_avatar as string) ?? null
+    }
   };
 }

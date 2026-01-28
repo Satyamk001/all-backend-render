@@ -10,25 +10,25 @@ export class HttpError extends Error {
 }
 
 export class NotFoundError extends HttpError {
-  constructor(message = "Not found") {
+  constructor(message = 'Not found') {
     super(404, message);
   }
 }
 
 export class BadRequestError extends HttpError {
-  constructor(message = "Bad Request", details?: unknown) {
+  constructor(message = 'Bad Request', details?: unknown) {
     super(400, message, details);
   }
 }
 
 export class UnauthorizedError extends HttpError {
-  constructor(message = "Unauthorized") {
+  constructor(message = 'Unauthorized') {
     super(401, message);
   }
 }
 
 export class ForbiddenError extends HttpError {
-  constructor(message = "Forbidden") {
+  constructor(message = 'Forbidden') {
     super(403, message);
   }
 }
