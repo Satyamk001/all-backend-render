@@ -17,10 +17,8 @@ jobs:
           node-version: 20.x
           cache: 'npm'
       - name: Install dependencies
-        working-directory: ./backend
         run: npm ci
       - name: Lint
-        working-directory: ./backend
         run: npm run lint
 
   
