@@ -6,7 +6,7 @@ import { logger } from './lib/logger.js';
 async function boostrap() {
   try {
     await assertDatabaseConnection();
-
+ 
     const port = Number(env.PORT) || 5000;
 
     server.listen(port, () => {
@@ -15,7 +15,7 @@ async function boostrap() {
   } catch (err) {
     logger.error("Failed's to start the server", `${(err as Error).message}`);
     process.exit(1);
-  }
+  } 
 }
 
 boostrap();

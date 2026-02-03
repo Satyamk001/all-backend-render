@@ -27,10 +27,24 @@ export async function listChatUsers(currentUserId: number) {
   }
 }
 
-export async function listDirectMessages(params: { userId: number; otherUserId: number; limit: number }) {
+export async function listDirectMessages(params: { userId: number; otherUserId: number; limit: number; offset: number }) {
   try {
-    const { userId, otherUserId, limit } = params;
+    const { userId, otherUserId, limit, offset } = params;
     const setLimit = Math.min(Math.max(limit || 50, 1), 200);
+
+    const count = await query(
+      `
+            SELECT COUNT(*)
+            FROM direct_messages dm
+            JOIN users s ON s.id = dm.sender_user_id
+            JOIN users r ON r.id = dm.recipient_user_id
+            WHERE
+              (dm.sender_user_id = $1 AND dm.recipient_user_id = $2)
+              OR
+              (dm.sender_user_id = $2 AND dm.recipient_user_id = $1)
+            `,
+      [userId, otherUserId]
+    );
 
     const result = await query(
       `
@@ -55,15 +69,17 @@ export async function listDirectMessages(params: { userId: number; otherUserId: 
               OR
               (dm.sender_user_id = $2 AND dm.recipient_user_id = $1)
             ORDER BY dm.created_at DESC
-            LIMIT $3
+            LIMIT $3 OFFSET $4
 
             `,
-      [userId, otherUserId, setLimit]
+      [userId, otherUserId, setLimit, offset]
     );
 
-    const rows = result.rows.slice().reverse();
-
-    return rows.map(row => ({
+    let rows = result.rows.slice().reverse();
+    const totalCount = parseInt(count.rows[0].count);
+    const hasMore = totalCount > offset + rows.length;
+    
+    rows =  rows.map(row => ({
       id: row.id as number,
       senderUserId: row.sender_user_id as number,
       recipientUserId: row.recipient_user_id as number,
@@ -81,6 +97,8 @@ export async function listDirectMessages(params: { userId: number; otherUserId: 
         avatarUrl: (row.recipient_avatar as string) ?? null
       }
     }));
+
+    return { rows, hasMore };
   } catch (err) {
     throw err;
   }

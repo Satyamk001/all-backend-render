@@ -40,14 +40,19 @@ chatRouter.get('/conversations/:otherUserId/messages', async (req, res, next) =>
 
     const limitParam = req.query.limit;
     const limit = typeof limitParam === 'string' ? parseInt(limitParam, 10) : 100;
+    const pageParam = req.query.page;
+    const page = typeof pageParam === 'string' ? parseInt(pageParam, 10) : 1;
+    const offset = (page - 1) * limit;
 
-    const messages = await listDirectMessages({
+
+    const { rows, hasMore } = await listDirectMessages({
       userId: currentUserId,
       otherUserId,
-      limit: limit || 50
+      limit,
+      offset
     });
 
-    res.json({ data: messages });
+    res.json({ data: rows, hasMore :hasMore });
   } catch (err) {
     next(err);
   }
