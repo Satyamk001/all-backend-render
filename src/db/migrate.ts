@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { logger } from '../lib/logger.js';
 import { query } from './db.js';
 
-const migrationsDir = path.resolve(process.cwd(), 'src', 'migrations');
+const migrationsDir = path.resolve(process.cwd(), 'src', 'migrations', 'chat-app');
 
 async function runMigrations() {
   logger.info(`Looking for migrations in ${migrationsDir}`);

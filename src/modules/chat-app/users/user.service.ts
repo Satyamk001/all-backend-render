@@ -56,6 +56,19 @@ export async function getCachedUser(clerkUserId: string): Promise<UserProfile> {
   return getUserFromClerk(clerkUserId);
 }
 
+export async function getUserPublicProfile(userId: number): Promise<UserProfile> {
+  const user = await userRepo.getUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return {
+    user,
+    clerkEmail: null,
+    clerkFullName: user.displayName
+  };
+}
+
 export async function updateUserProfile(params: {
   clerkUserId: string;
   displayName?: string;

@@ -142,8 +142,12 @@ export function initIo(httpServer: HttpServer) {
           const recipientRoom = `dm:user:${recipientUserId}`;
 
           io?.to(senderRoom).to(recipientRoom).emit('dm:message', message);
-        } catch (err) {
+        } catch (err: any) {
           console.error(err);
+          const senderUserId = (socket.data as { userId?: number }).userId;
+          if (senderUserId) {
+             socket.emit('dm:error', { error: err.message || 'Failed to send message' });
+          }
         }
       });
 

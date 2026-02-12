@@ -4,8 +4,11 @@ import { threadsRouter } from './threads.routes.js';
 import { notificationsRouter } from './notifications.routes.js';
 import { chatRouter } from './chat.routes.js';
 import { uploadRouter } from './upload.routes.js';
+import { friendRouter } from '../../modules/chat-app/friends/friends.controller.js';
 
 export const apiRouter = Router();
+
+apiRouter.use('/friends', friendRouter);
 
 apiRouter.use('/me', userRouter);
 

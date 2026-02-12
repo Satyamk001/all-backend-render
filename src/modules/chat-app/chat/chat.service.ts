@@ -5,14 +5,19 @@ export async function listChatUsers(currentUserId: number) {
     const result = await query(
       `
             SELECT 
-              id,
-              display_name,
-              handle,
-              avatar_url,
-              last_online_at
-            FROM users
-            WHERE id <> $1
-            ORDER BY COALESCE(display_name, handle, 'User') ASC
+              u.id,
+              u.display_name,
+              u.handle,
+              u.avatar_url,
+              u.last_online_at
+            FROM users u
+            JOIN friendships f ON (
+              (f.requester_id = $1 AND f.addressee_id = u.id)
+              OR
+              (f.addressee_id = $1 AND f.requester_id = u.id)
+            )
+            WHERE f.status = 'accepted'
+            ORDER BY COALESCE(u.display_name, u.handle, 'User') ASC
             `,
       [currentUserId]
     );
@@ -115,6 +120,13 @@ export async function createDirectMessage(params: {
   imageUrl?: string | null;
 }) {
   const { senderUserId, recipientUserId } = params;
+  
+  // Check friendship status
+  const areFriends = await import('../friends/friends.service.js').then(m => m.checkAreFriends(senderUserId, recipientUserId));
+  if (!areFriends) {
+      throw new Error('You must be friends to message this user');
+  }
+
   const rawBody = params?.body ?? '';
   const trimmedBody = rawBody.trim();
   const setImageUrl = params?.imageUrl ?? null;
