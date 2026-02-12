@@ -24,6 +24,14 @@ The microservice backend for the Kuku Fun chat application, built with **Node.js
 - **Database Schema**: New `topic_rooms`, `room_participants`, and `room_messages` tables.
 - **User Caching**: Optimized `getUserFromClerk` with caching to improve authentication performance during socket connections.
 
+### [v3.0.0] - 2026-02-12
+**Major Release: Friend System & Restrictions**
+- **Friend Module**: Full backend support for sending, accepting, and rejecting friend requests.
+- **Chat Restrictions**: Enforced logic preventing DMs between non-friends.
+- **Notifications**: Enhanced notification system to support friend-related events (`FRIEND_REQUEST`, `FRIEND_ACCEPTED`, `FRIEND_REJECTED`) with real-time socket delivery.
+- **Database Migrations**: Consolidated migrations into `001_schema_init.sql` and `002_chat_features.sql` for cleaner architecture.
+- **API**: New endpoints for user search and friend management.
+
 ## Tech Stack
 
 -   **Runtime**: Node.js
@@ -45,6 +53,13 @@ The microservice backend for the Kuku Fun chat application, built with **Node.js
 ### Chat
 -   `GET /api/chat/conversations/:userId/messages`: Get paginated messages.
 
+### Friends (New in v3.0.0)
+-   `GET /api/users/search`: Search for users to add.
+-   `POST /api/friends/request`: Send a friend request.
+-   `POST /api/friends/respond`: Accept or Reject a request.
+-   `GET /api/friends/requests`: List pending incoming requests.
+-   `GET /api/friends`: List all active friends.
+
 ### Topic Rooms
 - `GET /api/rooms`: List active rooms (supports `category` and `search` query params).
 - `POST /api/rooms`: Create a new room. Body: `{ title, category, durationMinutes, maxUsers }`.
@@ -52,6 +67,10 @@ The microservice backend for the Kuku Fun chat application, built with **Node.js
 - `GET /api/rooms/:id/messages`: Get message history for a room.
 
 ## Socket.IO Events
+
+### Namespace: `/` (Default)
+- **Server -> Client**:
+    - `notification:new`: Real-time alerts for friend requests, likes, replies.
 
 ### Namespace: `/rooms`
 - **Client -> Server**:
