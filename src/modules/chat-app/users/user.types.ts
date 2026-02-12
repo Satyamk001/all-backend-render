@@ -9,6 +9,7 @@ export type UserRow = {
   bio: string | null;
   created_at: Date;
   updated_at: Date;
+  last_online_at: Date | null;
 };
 
 export type User = {
@@ -20,6 +21,7 @@ export type User = {
   bio: string | null;
   createdAt: Date;
   updatedAt: Date;
+  lastOnlineAt: Date | null;
 };
 
 export type UserProfile = {
@@ -36,6 +38,7 @@ export type UserProfileResponse = {
   handle: string | null;
   avatarUrl: string | null;
   bio: string | null;
+  lastOnlineAt: Date | null;
 };
 
 export function toUserProfileResponse(profile: UserProfile): UserProfileResponse {
@@ -48,6 +51,7 @@ export function toUserProfileResponse(profile: UserProfile): UserProfileResponse
     displayName: user.displayName ?? clerkFullName ?? null,
     handle: user.handle ?? null,
     avatarUrl: user.avatarUrl ?? null,
-    bio: user.bio ?? null
+    bio: user.bio ?? null,
+    lastOnlineAt: user.lastOnlineAt ?? null
   };
 }

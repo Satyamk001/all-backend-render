@@ -10,7 +10,8 @@ function hydrateUser(row: UserRow): User {
     bio: row.bio,
     avatarUrl: row.avatar_url,
     createdAt: row.created_at,
-    updatedAt: row.updated_at
+    updatedAt: row.updated_at,
+    lastOnlineAt: row.last_online_at
   };
 }
 
@@ -109,4 +110,15 @@ export async function repoUpdateUserProfile(params: {
   }
 
   return hydrateUser(result.rows[0]);
+}
+
+export async function updateUserLastOnline(userId: number): Promise<void> {
+  await query(
+    `
+    UPDATE users
+    SET last_online_at = NOW()
+    WHERE id = $1
+    `,
+    [userId]
+  );
 }

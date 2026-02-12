@@ -64,3 +64,5 @@ export async function updateUserProfile(params: {
     clerkFullName: fullName
   };
 }
+
+export { updateUserLastOnline } from './user.repository.js';
