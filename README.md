@@ -17,8 +17,12 @@ The microservice backend for the Kuku Fun chat application, built with **Node.js
 -   **Smart Resource Type**: Automatically detects file type (`resource_type: 'auto'`) while preserving extensions for raw files (fixing PDF download issues).
 -   **File Deletion Endpoint**: `POST /api/upload/delete` to safely remove files from Cloudinary using `public_id` or URL.
 
-### [v1.1.0] - Planned
--   *Upcoming features will be listed here.*
+### [v2.0.0] - 2026-02-12
+**Major Release: Topic Rooms Module**
+- **Topic Rooms API**: Endpoints for creating, listing, and joining ephemeral chat rooms.
+- **Socket.IO Namespaces**: Dedicated `/rooms` namespace for scalable room-based real-time communication.
+- **Database Schema**: New `topic_rooms`, `room_participants`, and `room_messages` tables.
+- **User Caching**: Optimized `getUserFromClerk` with caching to improve authentication performance during socket connections.
 
 ## Tech Stack
 
@@ -27,7 +31,7 @@ The microservice backend for the Kuku Fun chat application, built with **Node.js
 -   **Language**: TypeScript
 -   **Real-time**: Socket.io
 -   **Storage**: Cloudinary
--   **Database**: (Implied, e.g., MongoDB/PostgreSQL)
+-   **Database**: PostgreSQL
 
 ## API Endpoints
 
@@ -41,6 +45,25 @@ The microservice backend for the Kuku Fun chat application, built with **Node.js
 ### Chat
 -   `GET /api/chat/conversations/:userId/messages`: Get paginated messages.
 
+### Topic Rooms
+- `GET /api/rooms`: List active rooms (supports `category` and `search` query params).
+- `POST /api/rooms`: Create a new room. Body: `{ title, category, durationMinutes, maxUsers }`.
+- `GET /api/rooms/:id`: Get room details.
+- `GET /api/rooms/:id/messages`: Get message history for a room.
+
+## Socket.IO Events
+
+### Namespace: `/rooms`
+- **Client -> Server**:
+    - `room:join`: Join a specific room.
+    - `room:leave`: Leave a room.
+    - `room:message`: Send a message to the room.
+- **Server -> Client**:
+    - `ready`: Connection established and handlers registered.
+    - `room:message`: New message received.
+    - `room:participant_update`: Participant count updated.
+    - `room:error`: Error notification.
+
 ## Getting Started
 
 1.  **Install Dependencies**:
@@ -51,7 +74,7 @@ The microservice backend for the Kuku Fun chat application, built with **Node.js
 2.  **Environment Variables**:
     Create a `.env` file with the following:
     ```env
-    PORT=3001
+    PORT=5000
     CLOUDINARY_CLOUD_NAME=...
     CLOUDINARY_API_KEY=...
     CLOUDINARY_API_SECRET=...

@@ -13,6 +13,7 @@ const helmet = require('helmet');
 import http from 'node:http';
 import { initIo } from './realtime/io.js';
 import portfolioRouter from './routes/portfolio/index.js';
+import roomRouter from './modules/topic-rooms/room.controller.js';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/chat-app/api', apiRouter);
+app.use('/api/rooms', roomRouter);
 app.use('/portfolio', portfolioRouter);
 
 app.use(notFoundHandler);

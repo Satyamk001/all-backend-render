@@ -1,8 +1,9 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import { getUserFromClerk, updateUserLastOnline } from '../modules/chat-app/users/user.service.js';
+import { getCachedUser, updateUserLastOnline } from '../modules/chat-app/users/user.service.js';
 import { createDirectMessage, markMessagesAsDelivered, markMessagesAsRead } from '../modules/chat-app/chat/chat.service.js';
 import { env } from '../config/env.js';
+import { registerTopicRoomHandlers } from '../modules/topic-rooms/topic-rooms.handler.js';
 
 let io: Server | null = null;
 
@@ -68,7 +69,7 @@ export function initIo(httpServer: HttpServer) {
         return;
       }
 
-      const profile = await getUserFromClerk(clerkUserId);
+      const profile = await getCachedUser(clerkUserId);
       const rawLocalUserId = profile.user.id;
       const localUserId = Number(rawLocalUserId);
       const displayName = profile.user.displayName ?? null;
@@ -196,6 +197,14 @@ export function initIo(httpServer: HttpServer) {
 
       addOnlineUser(localUserId, socket.id);
       broadcasePresence();
+
+      // Register Topic Rooms handlers
+      if (io) {
+        registerTopicRoomHandlers(io, socket);
+      }
+
+      // Signal to client that setup is complete and handlers are ready
+      socket.emit('ready', { userId: localUserId });
 
       socket.on('disconnect', async () => {
         console.log(`[io disconnect]------> ${socket.id}`);
