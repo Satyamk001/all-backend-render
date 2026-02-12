@@ -15,6 +15,22 @@ function hydrateUser(row: UserRow): User {
   };
 }
 
+export async function getUserByClerkId(clerkUserId: string): Promise<User | null> {
+  const { rows } = await query<UserRow>(
+    `SELECT * FROM users WHERE clerk_user_id = $1`,
+    [clerkUserId]
+  );
+  return rows[0] ? hydrateUser(rows[0]) : null;
+}
+
+export async function getUserById(userId: number): Promise<User | null> {
+  const { rows } = await query<UserRow>(
+    `SELECT * FROM users WHERE id = $1`,
+    [userId]
+  );
+  return rows[0] ? hydrateUser(rows[0]) : null;
+}
+
 export async function upsertUserFromClerkProfile(params: {
   clerkUserId: string;
   displayName: string | null;

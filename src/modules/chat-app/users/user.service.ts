@@ -1,5 +1,6 @@
 import { UserProfile } from './user.types.js';
 import { clerkClient } from '../../../config/clerk.js';
+import * as userRepo from './user.repository.js';
 import { repoUpdateUserProfile, upsertUserFromClerkProfile } from './user.repository.js';
 
 async function fetchClerkProfile(clerkUserId: string) {
@@ -36,6 +37,35 @@ export async function getUserFromClerk(clerkUserId: string): Promise<UserProfile
     user,
     clerkEmail: email,
     clerkFullName: fullName
+  };
+}
+
+export async function getCachedUser(clerkUserId: string): Promise<UserProfile> {
+  // Try to get from DB first
+  const existingUser = await userRepo.getUserByClerkId(clerkUserId);
+  if (existingUser) {
+    return {
+      user: existingUser,
+      clerkEmail: null, // We might not have this cached, but io.ts doesn't use it? 
+      // check io.ts usage. It uses user.id, displayName, handle.
+      clerkFullName: existingUser.displayName
+    };
+  }
+  
+  // Fallback to fetch
+  return getUserFromClerk(clerkUserId);
+}
+
+export async function getUserPublicProfile(userId: number): Promise<UserProfile> {
+  const user = await userRepo.getUserById(userId);
+  if (!user) {
+    throw new Error('User not found');
+  }
+
+  return {
+    user,
+    clerkEmail: null,
+    clerkFullName: user.displayName
   };
 }
 

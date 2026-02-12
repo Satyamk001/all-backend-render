@@ -146,6 +146,106 @@ export async function createLikeNotification(params: { threadId: number; actorUs
   }
 }
 
+export async function createFriendRequestNotification(params: {
+  friendshipId: number;
+  actorUserId: number;
+  targetUserId: number;
+}) {
+  const { friendshipId, actorUserId, targetUserId } = params;
+
+  const insertRes = await query(
+    `
+     INSERT INTO notifications (user_id, actor_user_id, friendship_id, type)
+     VALUES ($1, $2, $3, 'FRIEND_REQUEST')
+     RETURNING id
+     `,
+    [targetUserId, actorUserId, friendshipId]
+  );
+  
+  const notiId = insertRes.rows[0]?.id;
+  if (!notiId) return;
+
+  await emitNotificationEvent(notiId, targetUserId);
+}
+
+export async function createFriendAcceptedNotification(params: {
+  friendshipId: number;
+  actorUserId: number;
+  targetUserId: number;
+}) {
+  const { friendshipId, actorUserId, targetUserId } = params;
+
+  const insertRes = await query(
+    `
+     INSERT INTO notifications (user_id, actor_user_id, friendship_id, type)
+     VALUES ($1, $2, $3, 'FRIEND_ACCEPTED')
+     RETURNING id
+     `,
+    [targetUserId, actorUserId, friendshipId]
+  );
+  
+  const notiId = insertRes.rows[0]?.id;
+  if (!notiId) return;
+
+  await emitNotificationEvent(notiId, targetUserId);
+}
+
+export async function createFriendRejectedNotification(params: {
+  friendshipId: number;
+  actorUserId: number;
+  targetUserId: number;
+}) {
+  const { friendshipId, actorUserId, targetUserId } = params;
+
+  const insertRes = await query(
+    `
+     INSERT INTO notifications (user_id, actor_user_id, friendship_id, type)
+     VALUES ($1, $2, $3, 'FRIEND_REJECTED')
+     RETURNING id
+     `,
+    [targetUserId, actorUserId, friendshipId]
+  );
+  
+  const notiId = insertRes.rows[0]?.id;
+  if (!notiId) return;
+
+  await emitNotificationEvent(notiId, targetUserId);
+}
+
+async function emitNotificationEvent(notificationId: number, targetUserId: number) {
+  const fullRes = await query(
+    `
+        SELECT 
+          n.id,
+          n.type,
+          n.thread_id,
+          n.friendship_id,
+          n.created_at,
+          n.read_at,
+          actor.display_name AS actor_display_name,
+          actor.handle AS actor_handle,
+          actor.avatar_url AS actor_avatar_url,
+          t.title AS thread_title
+        FROM notifications n
+        JOIN users actor ON actor.id = n.actor_user_id
+        LEFT JOIN threads t ON t.id = n.thread_id
+        WHERE n.id = $1
+        LIMIT 1
+        `,
+    [notificationId]
+  );
+
+  const fullRow = fullRes.rows[0] as NotificationRow | undefined;
+  if (!fullRow) return;
+
+  const payload = mapNotificationsRow(fullRow);
+  const io = getIo();
+  if (io) {
+    io.to(`notifications:user:${targetUserId}`).emit('notification:new', payload);
+  }
+}
+
+
 export async function listNotificationsForUser(params: { userId: number; unreadOnly: boolean }) {
   try {
     const { unreadOnly, userId } = params;
@@ -167,14 +267,16 @@ export async function listNotificationsForUser(params: { userId: number; unreadO
           n.id,
           n.type,
           n.thread_id,
+          n.friendship_id,
           n.created_at,
           n.read_at,
           actor.display_name AS actor_display_name,
           actor.handle AS actor_handle,
+          actor.avatar_url AS actor_avatar_url,
           t.title AS thread_title
         FROM notifications n
         JOIN users actor ON actor.id = n.actor_user_id
-        JOIN threads t ON t.id = n.thread_id
+        LEFT JOIN threads t ON t.id = n.thread_id
         ${whereClause}
         ORDER BY n.created_at DESC
         `,

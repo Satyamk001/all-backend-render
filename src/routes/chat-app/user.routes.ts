@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { toUserProfileResponse, UserProfile, UserProfileResponse } from '../../modules/chat-app/users/user.types.js';
 import { getAuth } from '../../config/clerk.js';
 import { UnauthorizedError } from '../../lib/errors.js';
-import { getUserFromClerk, updateUserProfile } from '../../modules/chat-app/users/user.service.js';
+import { getUserFromClerk, updateUserProfile, getUserPublicProfile } from '../../modules/chat-app/users/user.service.js';
 
 export const userRouter = Router();
 
@@ -74,6 +74,29 @@ userRouter.patch('/', async (req, res, next) => {
     } catch (e) {
       throw e;
     }
+  } catch (err) {
+    next(err);
+  }
+});
+
+// get -> /api/users/:id
+
+userRouter.get('/:id', async (req, res, next) => {
+  try {
+    const userId = Number(req.params.id);
+    if (!Number.isFinite(userId)) {
+      throw new Error('Invalid user ID');
+    }
+
+    const auth = getAuth(req);
+    if (!auth.userId) {
+      throw new UnauthorizedError('Unauthorized');
+    }
+
+    const profile = await getUserPublicProfile(userId);
+    const response = toResponse(profile);
+
+    res.json({ data: response });
   } catch (err) {
     next(err);
   }
