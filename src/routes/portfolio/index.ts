@@ -3,7 +3,7 @@ import sendMail from '../../node_mailer/index.js';
 
 const portfolioRouter = Router();
 
-portfolioRouter.get('/health', (req, res) => {
+portfolioRouter.get('/health', (_req, res) => {
   res.send('Healthy');
 });
 

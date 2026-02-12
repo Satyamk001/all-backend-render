@@ -8,7 +8,8 @@ export async function listChatUsers(currentUserId: number) {
               id,
               display_name,
               handle,
-              avatar_url
+              avatar_url,
+              last_online_at
             FROM users
             WHERE id <> $1
             ORDER BY COALESCE(display_name, handle, 'User') ASC
@@ -20,7 +21,8 @@ export async function listChatUsers(currentUserId: number) {
       id: row.id as number,
       displayName: (row.display_name as string) ?? null,
       handle: (row.handle as string) ?? null,
-      avatarUrl: (row.avatar_url as string) ?? null
+      avatarUrl: (row.avatar_url as string) ?? null,
+      lastOnlineAt: (row.last_online_at as Date) ?? null
     }));
   } catch (err) {
     throw err;
@@ -55,6 +57,7 @@ export async function listDirectMessages(params: { userId: number; otherUserId: 
               dm.body,
               dm.image_url,
               dm.created_at,
+              dm.status,
               s.display_name AS sender_display_name,
               s.handle AS sender_handle,
               s.avatar_url AS sender_avatar,
@@ -86,6 +89,7 @@ export async function listDirectMessages(params: { userId: number; otherUserId: 
       body: (row.body as string) ?? null,
       imageUrl: (row.image_url as string) ?? null,
       createdAt: (row.created_at as Date).toISOString(),
+      status: (row.status as 'sent' | 'delivered' | 'read') ?? 'sent',
       sender: {
         displayName: (row.sender_display_name as string) ?? null,
         handle: (row.sender_handle as string) ?? null,
@@ -139,6 +143,7 @@ export async function createDirectMessage(params: {
               dm.body,
               dm.image_url,
               dm.created_at,
+              dm.status,
               s.display_name AS sender_display_name,
               s.handle AS sender_handle,
               s.avatar_url AS sender_avatar,
@@ -167,6 +172,7 @@ export async function createDirectMessage(params: {
     body: (fullRow.body as string) ?? null,
     imageUrl: (fullRow.image_url as string) ?? null,
     createdAt: (fullRow.created_at as Date).toISOString(),
+    status: (fullRow.status as 'sent' | 'delivered' | 'read') ?? 'sent',
     sender: {
       displayName: (fullRow.sender_display_name as string) ?? null,
       handle: (fullRow.sender_handle as string) ?? null,
@@ -178,4 +184,32 @@ export async function createDirectMessage(params: {
       avatarUrl: (fullRow.recipient_avatar as string) ?? null
     }
   };
+}
+
+export async function markMessagesAsDelivered(senderUserId: number, recipientUserId: number) {
+  // Mark all 'sent' messages from sender to recipient as 'delivered'
+  await query(
+    `
+    UPDATE direct_messages
+    SET status = 'delivered'
+    WHERE sender_user_id = $1 AND recipient_user_id = $2 AND status = 'sent'
+    `,
+    [senderUserId, recipientUserId]
+  );
+}
+
+export async function markMessagesAsRead(messageIds: number[], recipientUserId: number) {
+  if (messageIds.length === 0) return;
+
+  const placeholders = messageIds.map((_, i) => `$${i + 2}`).join(', ');
+  
+  // Ensure the recipient is actually the one updating the status (security)
+  await query(
+    `
+    UPDATE direct_messages
+    SET status = 'read'
+    WHERE id IN (${placeholders}) AND recipient_user_id = $1
+    `,
+    [recipientUserId, ...messageIds]
+  );
 }

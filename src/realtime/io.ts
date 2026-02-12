@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import { Server as HttpServer } from 'http';
-import { getUserFromClerk } from '../modules/chat-app/users/user.service.js';
-import { createDirectMessage } from '../modules/chat-app/chat/chat.service.js';
+import { getUserFromClerk, updateUserLastOnline } from '../modules/chat-app/users/user.service.js';
+import { createDirectMessage, markMessagesAsDelivered, markMessagesAsRead } from '../modules/chat-app/chat/chat.service.js';
 import { env } from '../config/env.js';
 
 let io: Server | null = null;
@@ -129,12 +129,45 @@ export function initIo(httpServer: HttpServer) {
             imageUrl: data?.imageUrl ?? null
           });
 
+          // Check if recipient is online
+          const isRecipientOnline = onlineUsers.has(recipientUserId);
+          if (isRecipientOnline) {
+             // Mark as delivered immediately
+             await markMessagesAsDelivered(senderUserId, recipientUserId);
+             message.status = 'delivered'; // Update object to send back to client
+          }
+
           const senderRoom = `dm:user:${senderUserId}`;
           const recipientRoom = `dm:user:${recipientUserId}`;
 
           io?.to(senderRoom).to(recipientRoom).emit('dm:message', message);
         } catch (err) {
           console.error(err);
+        }
+      });
+
+      socket.on('dm:read', async (payload: unknown) => {
+        try {
+           const data = payload as { messageIds: number[]; senderUserId: number };
+           const { messageIds, senderUserId } = data;
+           
+           if (!Array.isArray(messageIds) || messageIds.length === 0) return;
+           
+           const readerUserId = (socket.data as { userId?: number }).userId;
+           if (!readerUserId) return;
+
+           await markMessagesAsRead(messageIds, readerUserId);
+           
+           // Notify the ORIGINAL sender that their messages were read
+           const senderRoom = `dm:user:${senderUserId}`;
+           io?.to(senderRoom).emit('dm:status_update', {
+             messageIds,
+             status: 'read',
+             conversationId: readerUserId // The reader is the conversation partner
+           });
+           
+        } catch (err) {
+          console.error('Error handling read receipt:', err);
         }
       });
 
@@ -164,10 +197,20 @@ export function initIo(httpServer: HttpServer) {
       addOnlineUser(localUserId, socket.id);
       broadcasePresence();
 
-      socket.on('disconnect', () => {
+      socket.on('disconnect', async () => {
         console.log(`[io disconnect]------> ${socket.id}`);
         removeOnlineUser(localUserId, socket.id);
         broadcasePresence();
+        
+        // Update last online timestamp logic
+        // Only update if no other sockets are connected for this user
+        if (!onlineUsers.has(localUserId)) {
+           try {
+             await updateUserLastOnline(localUserId);
+           } catch (err) {
+             console.error('Failed to update last online:', err);
+           }
+        }
       });
     } catch (err) {
       console.log(`[Error while socket connection]------> ${err}`);
